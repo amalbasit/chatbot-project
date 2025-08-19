@@ -1,57 +1,39 @@
 from fastapi import FastAPI
-from model import Request, Response
-import json
-from llm import llm 
-import os
+
+from api.model import UserInput, BotReply
+from api.llm import llm
+from api.utils import load_data, save_data
 
 app = FastAPI()
-JSON_FILE = './data/chat_data.json'
-
-# folder_path = './data'
-# os.makedirs(folder_path, exist_ok=True)
-# JSON_FILE = os.path.join(folder_path, 'chat_data.json')
-
-def load_data():
-    try:
-        with open(JSON_FILE, 'r') as file:
-            return json.loads(file)
-    except:
-        return {}
-
-
-def save_data(data):
-    with open(JSON_FILE, 'w') as file:
-        json.dump(data, file, indent=4)
 
 chat_history = load_data() 
 
-@app.post('/chat', response_model=Response) 
-def bot_response(request: Request) -> Response: 
-    session_id = request.uuid
-    user_msg = request.message
+@app.post('/chat', response_model=BotReply) 
+def bot_response(user_input: UserInput) -> BotReply: 
+    session_id = user_input.uuid
+    user_msg = user_input.message
 
     if session_id not in chat_history:
         chat_history[session_id] = []
 
     chat_history[session_id].append({'role':'user', 'content':user_msg})
 
-    llm_messages = [
-        ("system", "You are a helpful assistant that explains technical concepts simply.")
+    llm_msgs = [
+        {"role": "system", "content": "You are a friendly AI assistant. Respond naturally to greetings and questions."}
     ]
 
-    # append user msg to llm msgs
-    llm_messages.append(("user", user_msg))
+    # Add all previous messages for this session
+    for msg in chat_history[session_id]:
+        llm_msgs.append({"role": msg['role'], "content": msg['content']})
 
-    # get AI response
-    bot_reply = llm.invoke(llm_messages).content
+    # Get AI response
+    bot_reply = llm.invoke(llm_msgs).content
 
-    # append bot reply to chat history
-    chat_history[session_id].append({'role':'ai', 'content':bot_reply})
+    # Append bot reply to chat history
+    chat_history[session_id].append({'role':'assistant', 'content':bot_reply}) 
 
     save_data(chat_history)
 
-    return Response(reply=bot_reply)
+    print(llm_msgs)
 
-# @app.get("/history/{session_id}")
-# def get_history(session_id: str):
-#     return {"history": chat_history.get(session_id, [])}
+    return BotReply(reply=bot_reply)
