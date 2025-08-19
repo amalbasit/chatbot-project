@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
-class Request(BaseModel):
+class UserInput(BaseModel):
     uuid: str
     message: str
 
-class Response(BaseModel):
+class BotReply(BaseModel):
     reply: str
