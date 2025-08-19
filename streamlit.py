@@ -1,9 +1,11 @@
-import streamlit as st
-import requests
 import uuid
 
+import streamlit as st
+import requests
+ 
+from api.constants import API_URL
 
-API_URL = "http://127.0.0.1:8000"
+# API_URL = "http://127.0.0.1:8000"
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -14,7 +16,7 @@ if "last_message" not in st.session_state:
 if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
 
-def get_bot_response(prompt):
+def get_bot_response(prompt: str) -> str:
     try:
         msg_info = {
             "uuid": st.session_state.session_id,
@@ -27,7 +29,7 @@ def get_bot_response(prompt):
         print(f"Error: {e}")
 
 
-def send_message():
+def send_message() -> None:
     prompt = st.session_state.user_input.strip()
     if prompt and prompt != st.session_state.last_message:
         st.session_state.last_message = prompt
