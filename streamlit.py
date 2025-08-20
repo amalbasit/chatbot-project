@@ -16,6 +16,10 @@ if "last_message" not in st.session_state:
 if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
 
+if "show_upload_options" not in st.session_state:
+    st.session_state.show_upload_options = False
+
+
 def get_bot_response(prompt: str) -> str:
     try:
         msg_info = {
@@ -51,7 +55,30 @@ with message_container:
 col_plus, col_input, col_send = st.columns([0.7, 8, 1.2], vertical_alignment='bottom', gap='small')
 
 with col_plus:
-    st.button(label="", icon="➕")
+    if st.button(label="", icon="➕"):
+        st.session_state.show_upload_options = not st.session_state.show_upload_options
+
+if st.session_state.show_upload_options:
+    option = st.selectbox("Choose upload option:", ["Select...", "Upload URL", "Upload TXT File"])
+    if option == "Upload URL":
+        pass
+    elif option == "Upload TXT File":
+        uploaded_file = st.file_uploader("Upload TXT file", type=["txt"])
+        if uploaded_file is not None:
+            file_content = uploaded_file.getvalue()            
+            if not file_content:
+                st.error("Uploaded file is empty!")
+            else:
+                files = {"file": (uploaded_file.name, file_content)}
+                data = {"session_id": st.session_state.session_id}
+                try:
+                    response = requests.post(f"{API_URL}/upload_txt", files=files, data=data)
+                    if response.status_code == 200:
+                        st.success("File saved and added to your RAG store!")
+                    else:
+                        st.error(f"Failed to upload file. Status code: {response.status_code}")
+                except Exception as e:
+                    st.error(f"Error uploading file: {e}")
 
 with col_input:
     st.text_input(
