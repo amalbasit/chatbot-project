@@ -5,8 +5,6 @@ import requests
  
 from api.constants import API_URL
 
-# API_URL = "http://127.0.0.1:8000"
-
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -74,7 +72,7 @@ if st.session_state.show_upload_options:
                 try:
                     response = requests.post(f"{API_URL}/upload_txt", files=files, data=data)
                     if response.status_code == 200:
-                        st.success("File saved and added to your RAG store!")
+                        st.success("File uploaded successfully!")
                     else:
                         st.error(f"Failed to upload file. Status code: {response.status_code}")
                 except Exception as e:
