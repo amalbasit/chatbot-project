@@ -1,57 +1,24 @@
-import os
-
 from fastapi import FastAPI, UploadFile, File, Form
 
-from api.model import UserInput, BotReply
-from api.llm import llm
-from api.utils import load_data, save_data
-from api.rag import RAGPipeline
-
-# PUT WHERE?
-template = """
-You are a helpful assistant answering questions.
-Use ONLY the following context to answer the question:
-
-Context:
-{context}
-
----
-
-Question: {question}
-
-Answer:
-"""
+from model import UserInput, BotReply
+from utils import load_data, save_data
+from rag import RAGPipeline
 
 # RAG Object
-rag_pipeline = RAGPipeline(vector_name="file_vector", template_string=template)
+rag_pipeline = RAGPipeline(vector_name="chroma_db")
 
 app = FastAPI()
 
-chat_history = load_data() 
-
-
-UPLOAD_FOLDER = "./api/uploaded_files"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+chat_history = load_data()
 
 @app.post("/upload_txt")
 def upload_txt(
     file: UploadFile = File(...),
     session_id: str = Form(...)
-    ):
-        file_path = os.path.join(UPLOAD_FOLDER, f"{session_id}_{file.filename}")
-        
-        with open(file_path, "wb") as f:
-            f.write(file.file.read()) # uploads file to server
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        rag_pipeline.add_document(content, session_id=session_id)
-        return {"status": "success", "file_saved": file_path}
-
-
-
-
+):
+    content = file.file.read().decode("utf-8")  
+    rag_pipeline.add_session_id(content, session_id=session_id)
+    return {"status": "success", "message": "Document uploaded successfully!"}
 
 @app.post('/chat', response_model=BotReply) 
 def bot_response(user_input: UserInput) -> BotReply: 
@@ -61,31 +28,18 @@ def bot_response(user_input: UserInput) -> BotReply:
     if session_id not in chat_history:
         chat_history[session_id] = []
 
+    if session_id not in chat_history:
+        chat_history[session_id] = []
+        chat_history[session_id].append({
+            "role": "system", 
+            "content": "You are a friendly AI assistant. Respond naturally to greetings and questions."
+        })
+
     chat_history[session_id].append({'role':'user', 'content':user_msg})
 
-    # retrieved_docs = rag.query(user_msg, session_id=session_id)
+    bot_reply = rag_pipeline.retrieve_and_answer(chat_history, user_msg, session_id)    
 
-    llm_msgs = [
-        {"role": "system", "content": "You are a friendly AI assistant. Respond naturally to greetings and questions."}
-    ]
-
-    # Add all previous messages for this session
-    for msg in chat_history[session_id]:
-        llm_msgs.append({"role": msg['role'], "content": msg['content']})
-
-    # 🔹 Retrieve docs
-    retrieved_docs = rag_pipeline.query(user_msg, session_id=session_id)
-
-    if retrieved_docs:
-        bot_reply = rag_pipeline.query_llm(user_msg, session_id=session_id)
-    else:
-
-        bot_reply = llm.invoke(llm_msgs).content
-    # Append bot reply to chat history
     chat_history[session_id].append({'role':'assistant', 'content':bot_reply}) 
-
     save_data(chat_history)
-
-    # print(llm_msgs)
 
     return BotReply(reply=bot_reply)
