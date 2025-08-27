@@ -83,7 +83,7 @@ profile_default/
 ipython_config.py
 data
 .DS_Store
-chroma_langchain_db
+chroma_db
 uploaded_files
 chroma.sqlite3
 # pyenv
