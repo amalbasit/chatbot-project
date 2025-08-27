@@ -1,9 +1,9 @@
 import json
-from typing import Any
+from typing import List, Dict
 
 from constants import JSON_FILE
 
-def load_data() -> dict[str, Any]:
+def load_data() -> Dict[str, List]:
     try:
         with open(JSON_FILE, 'r') as file:
             return json.load(file)
