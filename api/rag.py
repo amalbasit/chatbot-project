@@ -6,10 +6,9 @@ from langchain.schema import Document
 from langchain.prompts import PromptTemplate
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
-from typing import List
+from typing import List, Dict
 from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
-
+from langchain.chains.llm import LLMChain
 
 from llm import llm
 from constants import TEMPLATE
@@ -37,7 +36,7 @@ def build_prompt() -> PromptTemplate:
 
 # -- RAG Pipeline --
 class RAGPipeline:
-    def __init__(self, vector_name):
+    def __init__(self, vector_name: str) -> None:
         self.vector_store = init_vector_store(vector_name)  
         self.llm_chain = LLMChain(llm=llm, prompt=build_prompt())
 
@@ -50,20 +49,18 @@ class RAGPipeline:
         )
         return text_splitter.split_documents(docs)
 
-    def add_session_id(self, content: str, session_id: str):
+    def chunks_split(self, content: str, session_id: str) -> None:
         doc = Document(page_content=content)
-        chunks = self.split_docs(chunk_size=800, chunk_overlap=150, docs=[doc])
+        chunks = self.split_docs(chunk_size=800, chunk_overlap=100, docs=[doc])
         for chunk in chunks:
             chunk.metadata = {"session_id": session_id}
         self.vector_store.add_documents(chunks)
 
-    def retrieve_and_answer(self, chat_history, question: str, session_id: str):
-
+    def retrieve_and_answer(self, chat_history: Dict[str, List], question: str, session_id: str) -> str:
         # Retrieve docs
         retriever = self.vector_store.as_retriever(
             search_kwargs={"filter": {"session_id": session_id}}
         )
-
         docs = retriever.get_relevant_documents(question)
         context = "\n".join([doc.page_content for doc in docs])
 
@@ -71,11 +68,15 @@ class RAGPipeline:
         session_msgs = chat_history.get(session_id, [])
         chat_history_text = "\n".join([f"{m['role']}: {m['content']}" for m in session_msgs])
 
-        # call LLM Chain
-        response = self.llm_chain.run({
+        # Call LLM Chain
+        response = self.llm_chain.invoke({
             "chat_history": chat_history_text,
             "query": question,
             "context": context
         })
 
-        return response
+        text = response['text']
+        if '</think>' in text:
+            text = text.split("</think>")[-1].strip()
+
+        return text
