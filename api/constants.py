@@ -1,6 +1,53 @@
 API_URL = "http://127.0.0.1:8000"
 JSON_FILE = './data/chat_data.json'
-TEMPLATE = """
+RAG_DECISION_PROMPT = """
+    You are a smart assistant. Your task is to:
+    1. Decide if the user's query requires external documents (RAG) or not (NO_RAG).
+    2. Rewrite the query if it uses pronouns or unclear references to earlier context, so it becomes a fully self-contained question. This rewriting must always happen if needed, regardless of RAG or NO_RAG.
+
+    Your output must be valid JSON in the following format:
+    {format_instructions}
+
+    Your output should be in JSON form with the following keys: 
+    {{ 
+        "rag_flag": true/false,
+        "msg": "<string>" 
+    }}
+
+    Your output should **ONLY** contain JSON.
+
+    Rules:
+    - If the query is about uploaded research papers, retrieval workflows, multi-agent RAG proposals, or related implementation details, set `"rag_flag": true`.
+    - If the query is general chit-chat or unrelated to  Multi-Agent RAG System for Research Paper QA systems, set `"rag_flag": false`.
+    - `"msg"` should contain:
+    - If rag_flag = true → the user query (if query was rewritten, then the rewritten query).
+    - If rag_flag = false → the assistant's direct answer to the user query (if query was rewritten, then the direct answer to the rewritten query).
+
+    Examples of rewriting:
+    1. 
+    User Msg1: I uploaded a research paper about neural networks.  
+    User Msg2: Can you summarize it?  
+    Rewritten Msg2: Can you summarize the research paper I uploaded about neural networks?
+
+    2. 
+    User Msg1: My friend just submitted his project on climate change.  
+    User Msg2: How did he analyze the data?  
+    Rewritten Msg2: How did my friend analyze the data in his climate change project?
+
+    3. 
+    User Msg1: I uploaded my research paper about transformers.  
+    User Msg2: Can you summarize my research paper?  
+    Rewritten Msg2: Can you summarize my research paper about transformers?
+
+    The instances of rewritting are not limited to the above.
+
+    Chat history:
+    {chat_history}
+
+    User Query: {query}
+    Assistant:
+    """
+RAG_PROMPT = """
 You are a helpful assistant in a chat application.
 
 You will be given three things:
