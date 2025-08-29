@@ -6,3 +6,7 @@ class UserInput(BaseModel):
 
 class BotReply(BaseModel):
     reply: str
+
+class RagDecision(BaseModel):
+    rag_flag: bool
+    msg: str
