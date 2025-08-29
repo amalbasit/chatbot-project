@@ -1,17 +1,16 @@
 import os
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema import Document
-from langchain.prompts import PromptTemplate
 from langchain_chroma import Chroma
+from langchain_core.output_parsers import StrOutputParser
 from langchain_huggingface import HuggingFaceEmbeddings
-from typing import List, Dict
 from langchain.prompts import PromptTemplate
-from langchain.chains.llm import LLMChain
+from langchain.schema import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from typing import List
 
 from llm import llm
-from constants import TEMPLATE
+from constants import RAG_PROMPT
 
 
 # -- Vector Store --
@@ -30,7 +29,7 @@ def init_vector_store(name: str) -> Chroma:
 def build_prompt() -> PromptTemplate: 
     prompt_template = PromptTemplate(
         input_variables=["chat_history", "context", "query"],
-        template=TEMPLATE
+        template=RAG_PROMPT
     )
     return prompt_template
 
@@ -38,7 +37,8 @@ def build_prompt() -> PromptTemplate:
 class RAGPipeline:
     def __init__(self, vector_name: str) -> None:
         self.vector_store = init_vector_store(vector_name)  
-        self.llm_chain = LLMChain(llm=llm, prompt=build_prompt())
+        # self.llm_chain = LLMChain(llm=llm, prompt=build_prompt())
+        self.llm_chain = build_prompt() | llm | StrOutputParser()
 
     def split_docs(self, chunk_size: int, chunk_overlap: int, docs: List) -> List:
         text_splitter = RecursiveCharacterTextSplitter(
@@ -56,17 +56,13 @@ class RAGPipeline:
             chunk.metadata = {"session_id": session_id}
         self.vector_store.add_documents(chunks)
 
-    def retrieve_and_answer(self, chat_history: Dict[str, List], question: str, session_id: str) -> str:
+    def retrieve_and_answer(self, chat_history_text: str, question: str, session_id: str) -> str:
         # Retrieve docs
         retriever = self.vector_store.as_retriever(
             search_kwargs={"filter": {"session_id": session_id}}
         )
         docs = retriever.get_relevant_documents(question)
         context = "\n".join([doc.page_content for doc in docs])
-
-        # Convert chat_history to string
-        session_msgs = chat_history.get(session_id, [])
-        chat_history_text = "\n".join([f"{m['role']}: {m['content']}" for m in session_msgs])
 
         # Call LLM Chain
         response = self.llm_chain.invoke({
@@ -75,8 +71,7 @@ class RAGPipeline:
             "context": context
         })
 
-        text = response['text']
-        if '</think>' in text:
-            text = text.split("</think>")[-1].strip()
+        if '</think>' in response:
+            response = response.split("</think>")[-1].strip()
 
-        return text
+        return response
