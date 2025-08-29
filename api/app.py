@@ -5,9 +5,10 @@ import requests
 from typing import Dict
 import validators
 
-from model import UserInput, BotReply
+from model import UserInput, BotReply, RagDecision
 from utils import load_data, save_data
 from rag import RAGPipeline
+from rag_decision import rag_decision
 
 rag_pipeline = RAGPipeline(vector_name="chroma_db")
 
@@ -74,9 +75,6 @@ def bot_response(user_input: UserInput) -> BotReply:
 
     if session_id not in chat_history:
         chat_history[session_id] = []
-
-    if session_id not in chat_history:
-        chat_history[session_id] = []
         chat_history[session_id].append({
             "role": "system", 
             "content": "You are a friendly AI assistant. Respond naturally to greetings and questions."
@@ -84,7 +82,18 @@ def bot_response(user_input: UserInput) -> BotReply:
 
     chat_history[session_id].append({'role':'user', 'content':user_msg})
 
-    bot_reply = rag_pipeline.retrieve_and_answer(chat_history, user_msg, session_id)    
+    session_msgs = chat_history.get(session_id, [])
+    chat_history_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in session_msgs])
+
+    reply_dict = rag_decision(chat_history_text, user_msg)   
+    reply = RagDecision(**reply_dict)
+
+    print(reply) # to see output, remove
+
+    if reply.rag_flag == True:
+        bot_reply = rag_pipeline.retrieve_and_answer(chat_history_text, reply.msg, session_id) 
+    else:
+        bot_reply = reply.msg
 
     chat_history[session_id].append({'role':'assistant', 'content':bot_reply}) 
     save_data(chat_history)
