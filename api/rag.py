@@ -9,8 +9,8 @@ from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from typing import List
 
-from llm import llm
 from constants import RAG_PROMPT
+from llm import llm
 
 
 # -- Vector Store --
@@ -20,8 +20,7 @@ def init_vector_store(name: str) -> Chroma:
 
     vector_store = Chroma(
         collection_name=name,
-        embedding_function=embeddings,
-        persist_directory="./chroma_db",
+        embedding_function=embeddings
     )
     return vector_store
 
@@ -37,7 +36,6 @@ def build_prompt() -> PromptTemplate:
 class RAGPipeline:
     def __init__(self, vector_name: str) -> None:
         self.vector_store = init_vector_store(vector_name)  
-        # self.llm_chain = LLMChain(llm=llm, prompt=build_prompt())
         self.llm_chain = build_prompt() | llm | StrOutputParser()
 
     def split_docs(self, chunk_size: int, chunk_overlap: int, docs: List) -> List:
