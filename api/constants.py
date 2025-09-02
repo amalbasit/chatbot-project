@@ -8,17 +8,18 @@ RAG_DECISION_PROMPT = """
     Your output must be valid JSON in the following format:
     {format_instructions}
 
-    Your output should be in JSON form with the following keys: 
-    {{ 
-        "rag_flag": true/false,
-        "msg": "<string>" 
+    IMPORTANT: Your response must be **ONLY JSON** with no extra text, explanation, or markdown. Example:
+
+    {{
+      "rag_flag": true,
+      "msg": "Your rewritten question here"
     }}
 
     Your output should **ONLY** contain JSON.
 
     Rules:
-    - If the query is about uploaded research papers, retrieval workflows, multi-agent RAG proposals, or related implementation details, set `"rag_flag": true`.
-    - If the query is general chit-chat or unrelated to  Multi-Agent RAG System for Research Paper QA systems, set `"rag_flag": false`.
+    - If the query is not general chit-chat or not a general question that you can answer directly, set `"rag_flag": true`.
+    - If the query is general chit-chat or a general knowledge question you can answer on your own, set `"rag_flag": false`.
     - `"msg"` should contain:
     - If rag_flag = true → the user query (if query was rewritten, then the rewritten query).
     - If rag_flag = false → the assistant's direct answer to the user query (if query was rewritten, then the direct answer to the rewritten query).
