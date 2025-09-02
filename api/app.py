@@ -1,3 +1,5 @@
+import json
+
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from PyPDF2 import PdfReader
@@ -6,15 +8,22 @@ from typing import Dict
 import validators
 
 from model import UserInput, BotReply, RagDecision
-from utils import load_data, save_data
 from rag import RAGPipeline
 from rag_decision import rag_decision
+from utils import save_data
+from constants import JSON_FILE
 
 rag_pipeline = RAGPipeline(vector_name="chroma_db")
 
 app = FastAPI()
 
-chat_history = load_data()
+@app.on_event("startup")
+def clear_chat_history():
+    app.state.chat_history = {}
+    with open(JSON_FILE, "w") as f:
+        json.dump({}, f, indent=4)
+
+chat_history = {}
 
 @app.post("/upload_txt")
 def upload_txt(
@@ -67,7 +76,6 @@ def upload_url(url: str = Form(...), session_id: str = Form(...)) -> Dict:
     except:
         raise HTTPException(status_code=response.status_code, detail="URL fetch failed.")
 
-
 @app.post('/chat', response_model=BotReply) 
 def bot_response(user_input: UserInput) -> BotReply: 
     session_id = user_input.uuid
@@ -87,8 +95,6 @@ def bot_response(user_input: UserInput) -> BotReply:
 
     reply_dict = rag_decision(chat_history_text, user_msg)   
     reply = RagDecision(**reply_dict)
-
-    print(reply) # to see output, remove
 
     if reply.rag_flag == True:
         bot_reply = rag_pipeline.retrieve_and_answer(chat_history_text, reply.msg, session_id) 
