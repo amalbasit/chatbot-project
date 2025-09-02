@@ -58,7 +58,6 @@ def upload_alert(response: requests.Response, msg: str) -> None:
         st.session_state.show_upload_options = False        
         time.sleep(0.1)
         st.rerun()
-
     else:
         try:
             error_msg = response.json().get("detail", f"Failed to upload. Status code: {response.status_code}")
@@ -73,7 +72,7 @@ with message_container:
         with st.chat_message(message['role']):
             st.write(message['content'])
 
-col_plus, col_input, col_send = st.columns([0.7, 8, 1.2], vertical_alignment='bottom', gap='small')
+col_plus, col_input = st.columns([0.7, 8], vertical_alignment='bottom', gap='small')
 
 with col_plus:
     if st.button(label="", icon="➕"):
@@ -135,7 +134,3 @@ with col_input:
         key="user_input",
         on_change=send_message
     )
-
-with col_send:
-    if st.button("Send", type="primary"):
-        send_message()
