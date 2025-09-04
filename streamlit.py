@@ -1,5 +1,3 @@
-import os
-os.environ["STREAMLIT_WATCHDOG_OBSERVERS"] = "0"
 import time
 import uuid
 
