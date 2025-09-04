@@ -7,19 +7,6 @@ import requests
  
 from api.constants import API_URL
 
-# remove! 
-import logging
-
-# Basic Config
-
-logging.basicConfig(level=logging.INFO,
-                    filename='app.log',
-                    filemode='w',
-                    format='%(asctime)s - %(name)s - %(filename)s - %(levelname)s - Line: %(lineno)d - %(message)s')
-
-logging.info('uh hello')
-
-
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
