@@ -1,4 +1,4 @@
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://internship-chatbot-project.streamlit.app/"
 JSON_FILE = './data/chat_data.json'
 RAG_DECISION_PROMPT = """
     You are a smart assistant. Your task is to:
