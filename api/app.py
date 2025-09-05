@@ -8,10 +8,10 @@ from typing import Dict
 import validators
 
 from .model import UserInput, BotReply, RagDecision
-from rag import RAGPipeline
-from rag_decision import rag_decision
-from utils import save_data
-from constants import JSON_FILE
+from .rag import RAGPipeline
+from .rag_decision import rag_decision
+from .utils import save_data
+from .constants import JSON_FILE
 
 rag_pipeline = RAGPipeline(vector_name="chroma_db")
 
