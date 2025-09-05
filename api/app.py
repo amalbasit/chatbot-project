@@ -7,7 +7,7 @@ import requests
 from typing import Dict
 import validators
 
-from model import UserInput, BotReply, RagDecision
+from .model import UserInput, BotReply, RagDecision
 from rag import RAGPipeline
 from rag_decision import rag_decision
 from utils import save_data
