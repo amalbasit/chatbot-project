@@ -1,5 +1,5 @@
-[backend]
+[services.backend]
 start = "uvicorn api.app:app --host 0.0.0.0 --port $PORT"
 
-[frontend]
+[services.frontend]
 start = "streamlit run streamlit.py --server.port $PORT --server.address 0.0.0.0"
