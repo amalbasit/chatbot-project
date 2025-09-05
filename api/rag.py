@@ -9,8 +9,8 @@ from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from typing import List
 
-from constants import RAG_PROMPT
-from llm import llm
+from .constants import RAG_PROMPT
+from .llm import llm
 
 
 # -- Vector Store --

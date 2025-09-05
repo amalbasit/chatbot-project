@@ -1,9 +1,9 @@
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 
-from constants import RAG_DECISION_PROMPT
-from llm import llm
-from model import RagDecision
+from .constants import RAG_DECISION_PROMPT
+from .llm import llm
+from .model import RagDecision
 
 def rag_decision(chat_history, query):
 

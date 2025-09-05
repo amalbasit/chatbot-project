@@ -1,7 +1,7 @@
 import json
 from typing import List, Dict
 
-from constants import JSON_FILE
+from .constants import JSON_FILE
 
 def load_data() -> Dict[str, List]:
     try:
