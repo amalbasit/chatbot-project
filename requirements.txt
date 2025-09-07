@@ -11,7 +11,9 @@ pydantic==2.11.7
 PyPDF2==3.0.1
 python-dotenv==1.1.1
 requests==2.32.4
-sentence-transformers==5.1.0
+torch==2.2.0+cpu --index-url https://download.pytorch.org/whl/cpu
+transformers==4.40.0
+sentence-transformers==2.7.0
 streamlit==1.48.0
 streamlit_push_notifications==0.1
 validators==0.35.0
