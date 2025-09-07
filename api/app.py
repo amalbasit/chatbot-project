@@ -36,52 +36,13 @@ def clear_chat_history():
 
 chat_history = {}
 
-# @app.post("/upload_txt")
-# def upload_txt(
-#     file: UploadFile = File(...),
-#     session_id: str = Form(...)
-# ) -> Dict:
-#     content = file.file.read().decode("utf-8")  
-#     rag_pipeline.chunks_split(content, session_id=session_id)
-#     return {"status": "success"}
-import logging
-logging.basicConfig(level=logging.INFO)
-
 @app.post("/upload_txt")
-async def upload_txt(
+def upload_txt(
     file: UploadFile = File(...),
     session_id: str = Form(...)
 ) -> Dict:
-    try:
-        content_bytes = await file.read()
-        content = content_bytes.decode("utf-8", errors="ignore")
-        logging.info(f"Processing file of size {len(content_bytes)} bytes for session {session_id}")
-
-        rag_pipeline.chunks_split(content, session_id=session_id)
-        logging.info("Chunks split successfully")
-
-        return {"status": "success"}
-    except Exception as e:
-        logging.error(f"Failed processing TXT: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to process TXT: {str(e)}")
-
-
-
-@app.post("/upload_pdf")
-def upload_pdf(
-    file: UploadFile = File(...),
-    session_id: str = Form(...)) -> Dict:
-
-    reader = PdfReader(file.file)
-    text = ""
-
-    for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text + "\n"
-
-    rag_pipeline.chunks_split(text, session_id)
-
+    content = file.file.read().decode("utf-8")  
+    rag_pipeline.chunks_split(content, session_id=session_id)
     return {"status": "success"}
 
 @app.post("/upload_url")
