@@ -51,7 +51,7 @@ def upload_txt(
     file: UploadFile = File(...),
     session_id: str = Form(...)
 ) -> Dict:
-    # Process the file in chunks directly
+    file.file.seek(0)  # rewind to beginning
     for chunk in read_file_in_chunks(file.file):
         rag_pipeline.chunks_split(chunk, session_id=session_id)
     return {"status": "success"}
