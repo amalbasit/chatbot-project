@@ -56,7 +56,7 @@ class RAGPipeline:
 
     from langchain.schema import Document
 
-    def chunks_split_incremental(self, content: str, session_id: str, batch_size: int = 5) -> None:
+    def chunks_split(self, content: str, session_id: str, batch_size: int = 5) -> None:
         """
         Splits content into chunks and adds them to vector store in batches.
         This avoids memory spikes and long blocking operations.
