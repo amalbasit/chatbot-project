@@ -36,14 +36,33 @@ def clear_chat_history():
 
 chat_history = {}
 
+# @app.post("/upload_txt")
+# def upload_txt(
+#     file: UploadFile = File(...),
+#     session_id: str = Form(...)
+# ) -> Dict:
+#     content = file.file.read().decode("utf-8")  
+#     rag_pipeline.chunks_split(content, session_id=session_id)
+#     return {"status": "success"}
+
 @app.post("/upload_txt")
-def upload_txt(
+async def upload_txt(
     file: UploadFile = File(...),
     session_id: str = Form(...)
 ) -> Dict:
-    content = file.file.read().decode("utf-8")  
-    rag_pipeline.chunks_split(content, session_id=session_id)
-    return {"status": "success"}
+    try:
+        # Read entire file asynchronously
+        content_bytes = await file.read()
+        content = content_bytes.decode("utf-8", errors="ignore")
+
+        # Send to pipeline
+        rag_pipeline.chunks_split(content, session_id=session_id)
+
+        return {"status": "success"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process TXT: {str(e)}")
+
 
 @app.post("/upload_pdf")
 def upload_pdf(
