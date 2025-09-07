@@ -74,7 +74,6 @@ Guidelines for your response:
 - If the retrieved context is **not related** to the current user message:  
   1. If the message is a **generic prompt** (such as greetings, small talk, or general knowledge questions), answer on your own without using the context. Always attempt to answer general or well-known technical questions even if there is no retrieved context. 
   2. Otherwise, reply with: "I’m not sure about that based on the information I have."
-- In any case, make sure you answer is organised?
 
 Now, provide your answer to the user’s current message.
 """
