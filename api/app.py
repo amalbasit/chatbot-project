@@ -44,28 +44,27 @@ chat_history = {}
 #     content = file.file.read().decode("utf-8")  
 #     rag_pipeline.chunks_split(content, session_id=session_id)
 #     return {"status": "success"}
+import logging
+logging.basicConfig(level=logging.INFO)
+
 @app.post("/upload_txt")
 async def upload_txt(
     file: UploadFile = File(...),
     session_id: str = Form(...)
 ) -> Dict:
     try:
-        # Reset file pointer
-        file.file.seek(0)
+        content_bytes = await file.read()
+        content = content_bytes.decode("utf-8", errors="ignore")
+        logging.info(f"Processing file of size {len(content_bytes)} bytes for session {session_id}")
 
-        # Read and process in chunks (1MB each here)
-        while True:
-            chunk = file.file.read(1024 * 1024)  # 1MB
-            if not chunk:
-                break
-
-            text = chunk.decode("utf-8", errors="ignore")
-            rag_pipeline.chunks_split(text, session_id=session_id)
+        rag_pipeline.chunks_split(content, session_id=session_id)
+        logging.info("Chunks split successfully")
 
         return {"status": "success"}
-
     except Exception as e:
+        logging.error(f"Failed processing TXT: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to process TXT: {str(e)}")
+
 
 
 @app.post("/upload_pdf")
