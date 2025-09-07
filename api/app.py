@@ -25,6 +25,12 @@ if not os.path.exists(JSON_FILE):
     with open(JSON_FILE, "w") as f:
         json.dump({}, f)
 
+# new func
+def read_file_in_chunks(file, chunk_size=1024*1024):
+    """Yield text chunks from a file, decoding line by line"""
+    while chunk := file.read(chunk_size):
+        yield chunk.decode('utf-8', errors='ignore')
+
 @app.on_event("startup")
 def clear_chat_history():
     # app.state.chat_history = {}
@@ -39,8 +45,12 @@ def upload_txt(
     session_id: str = Form(...)
 ) -> Dict:
     content = file.file.read().decode("utf-8")  
-    rag_pipeline.chunks_split(content, session_id=session_id)
+    # Process file in chunks
+    for chunk in read_file_in_chunks(file.file):
+        rag_pipeline.chunks_split(chunk, session_id=session_id)
     return {"status": "success"}
+    # rag_pipeline.chunks_split(content, session_id=session_id)
+    # return {"status": "success"}
 
 @app.post("/upload_pdf")
 def upload_pdf(
