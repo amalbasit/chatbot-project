@@ -1,4 +1,5 @@
 import json
+import os
 
 from bs4 import BeautifulSoup
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
@@ -17,9 +18,16 @@ rag_pipeline = RAGPipeline(vector_name="chroma_db")
 
 app = FastAPI()
 
+os.makedirs("./data", exist_ok=True)
+
+# Ensure file exists
+if not os.path.exists(JSON_FILE):
+    with open(JSON_FILE, "w") as f:
+        json.dump({}, f)
+
 @app.on_event("startup")
 def clear_chat_history():
-    app.state.chat_history = {}
+    # app.state.chat_history = {}
     with open(JSON_FILE, "w") as f:
         json.dump({}, f, indent=4)
 
