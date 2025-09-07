@@ -1,4 +1,4 @@
-API_URL = "internship-chatbot-backend.up.railway.app"
+API_URL = "https://internship-chatbot-backend.up.railway.app"
 JSON_FILE = './data/chat_data.json'
 RAG_DECISION_PROMPT = """
     You are a smart assistant. Your task is to:
