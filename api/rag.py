@@ -47,12 +47,32 @@ class RAGPipeline:
         )
         return text_splitter.split_documents(docs)
 
-    def chunks_split(self, content: str, session_id: str) -> None:
+    # def chunks_split(self, content: str, session_id: str) -> None:
+    #     doc = Document(page_content=content)
+    #     chunks = self.split_docs(chunk_size=800, chunk_overlap=100, docs=[doc])
+    #     for chunk in chunks:
+    #         chunk.metadata = {"session_id": session_id}
+    #     self.vector_store.add_documents(chunks)
+
+    from langchain.schema import Document
+
+    def chunks_split_incremental(self, content: str, session_id: str, batch_size: int = 5) -> None:
+        """
+        Splits content into chunks and adds them to vector store in batches.
+        This avoids memory spikes and long blocking operations.
+        """
         doc = Document(page_content=content)
         chunks = self.split_docs(chunk_size=800, chunk_overlap=100, docs=[doc])
+
+        # Add session metadata
         for chunk in chunks:
             chunk.metadata = {"session_id": session_id}
-        self.vector_store.add_documents(chunks)
+
+        # Add to vector store in small batches
+        for i in range(0, len(chunks), batch_size):
+            batch = chunks[i:i + batch_size]
+            self.vector_store.add_documents(batch)
+
 
     def retrieve_and_answer(self, chat_history_text: str, question: str, session_id: str) -> str:
         # Retrieve docs
