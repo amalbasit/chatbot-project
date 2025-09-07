@@ -44,19 +44,23 @@ chat_history = {}
 #     content = file.file.read().decode("utf-8")  
 #     rag_pipeline.chunks_split(content, session_id=session_id)
 #     return {"status": "success"}
-
 @app.post("/upload_txt")
 async def upload_txt(
     file: UploadFile = File(...),
     session_id: str = Form(...)
 ) -> Dict:
     try:
-        # Read entire file asynchronously
-        content_bytes = await file.read()
-        content = content_bytes.decode("utf-8", errors="ignore")
+        # Reset file pointer
+        file.file.seek(0)
 
-        # Send to pipeline
-        rag_pipeline.chunks_split(content, session_id=session_id)
+        # Read and process in chunks (1MB each here)
+        while True:
+            chunk = file.file.read(1024 * 1024)  # 1MB
+            if not chunk:
+                break
+
+            text = chunk.decode("utf-8", errors="ignore")
+            rag_pipeline.chunks_split(text, session_id=session_id)
 
         return {"status": "success"}
 
