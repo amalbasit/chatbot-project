@@ -45,6 +45,23 @@ def upload_txt(
     rag_pipeline.chunks_split(content, session_id=session_id)
     return {"status": "success"}
 
+@app.post("/upload_pdf")
+def upload_pdf(
+    file: UploadFile = File(...),
+    session_id: str = Form(...)) -> Dict:
+
+    reader = PdfReader(file.file)
+    text = ""
+
+    for page in reader.pages:
+        page_text = page.extract_text()
+        if page_text:
+            text += page_text + "\n"
+
+    rag_pipeline.chunks_split(text, session_id)
+
+    return {"status": "success"}
+
 @app.post("/upload_url")
 def upload_url(url: str = Form(...), session_id: str = Form(...)) -> Dict:
     try:
