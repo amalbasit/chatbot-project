@@ -36,27 +36,15 @@ def clear_chat_history():
 
 chat_history = {}
 
-# @app.post("/upload_txt")
-# def upload_txt(
-#     file: UploadFile = File(...),
-#     session_id: str = Form(...)
-# ) -> Dict:
-#     content = file.file.read().decode("utf-8")  
-#     rag_pipeline.chunks_split(content, session_id=session_id)
-#     return {"status": "success"}
-
 @app.post("/upload_txt")
 def upload_txt(
     file: UploadFile = File(...),
     session_id: str = Form(...)
 ) -> Dict:
     content = file.file.read().decode("utf-8")  
-    # Process file in chunks
     for chunk in read_file_in_chunks(file.file):
         rag_pipeline.chunks_split(chunk, session_id=session_id)
     return {"status": "success"}
-    # rag_pipeline.chunks_split(content, session_id=session_id)
-    # return {"status": "success"}
 
 @app.post("/upload_pdf")
 def upload_pdf(
